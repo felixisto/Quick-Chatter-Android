@@ -27,6 +27,8 @@ public interface Router {
     }
 
     interface System extends Router {
+        void closeAllPopupWindows();
+
         void pickFile(@NonNull Callback<Path> success, @NonNull SimpleCallback failure, @NonNull String description);
         void pickDirectory(@NonNull Callback<Path> success, @NonNull SimpleCallback failure, @NonNull String description);
         void pickFileDestination(@NonNull Callback<Path> success, @NonNull SimpleCallback failure, @NonNull String name, @NonNull String description);

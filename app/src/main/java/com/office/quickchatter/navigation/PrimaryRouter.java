@@ -122,6 +122,8 @@ public class PrimaryRouter implements Router.Primary, Router.System {
             return;
         }
 
+        closeAllPopupWindows();
+
         goToConnectMenuScreen();
     }
 
@@ -136,6 +138,8 @@ public class PrimaryRouter implements Router.Primary, Router.System {
             Logger.error(this, "Can navigate to connect screen only from either chat OR connect menu screens!");
             return;
         }
+
+        closeAllPopupWindows();
 
         goToConnectScreen();
     }
@@ -152,16 +156,22 @@ public class PrimaryRouter implements Router.Primary, Router.System {
             return;
         }
 
+        closeAllPopupWindows();
+
         goToReconnectScreen();
     }
 
     @Override
     public void navigateToConnectingAsServer(@NonNull BEClient client) {
+        closeAllPopupWindows();
+
         navigateToConnecting(client, true);
     }
 
     @Override
     public void navigateToConnectingAsClient(@NonNull BEClient client) {
+        closeAllPopupWindows();
+
         navigateToConnecting(client, false);
     }
 
@@ -175,6 +185,8 @@ public class PrimaryRouter implements Router.Primary, Router.System {
             Logger.error(this, "Can navigate to connecting screen from either reconnect OR connect screen!");
             return;
         }
+
+        closeAllPopupWindows();
 
         if (isServer) {
             goToConnectingServerScreen(client);
@@ -197,10 +209,19 @@ public class PrimaryRouter implements Router.Primary, Router.System {
             return;
         }
 
+        closeAllPopupWindows();
+
         goToChatScreen(client, transmitter, transmitterService);
     }
 
     // # Router.System
+
+    @Override
+    public void closeAllPopupWindows() {
+        if (isFilePickerScreenVisible()) {
+            exitFilePickerScreen();
+        }
+    }
 
     @Override
     public void pickFile(@NonNull Callback<Path> success, @NonNull SimpleCallback failure, @NonNull String description) {
