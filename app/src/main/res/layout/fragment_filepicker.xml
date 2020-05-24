@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <TextView
+            android:id="@+id/labelDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pick file"
+            android:textStyle="bold"
+            android:singleLine="true"
+            android:layout_weight="1"
+            android:textSize="24sp"/>
+        <Button
+            android:id="@+id/buttonPick"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="Pick"
+            android:visibility="gone"/>
+        <ImageButton
+            android:id="@+id/buttonClose"
+            android:layout_width="64dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_clear_black_24dp"/>
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/contentNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <FrameLayout
+        android:id="@+id/contentDirectory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal">
+
+    <ToggleButton
+        android:id="@+id/buttonScan"
+        android:layout_width="256dp"
+        android:layout_height="wrap_content"
+        android:textOn="@string/button_scan_stop"
+        android:textOff="@string/button_scan_start" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="4dp" />
+
+    <ListView
+        android:id="@+id/listClients"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Quick Chatter</string>
+    <string name="app_name_no_space">QuickChatter</string>
+
+    <!-- Errors -->
+    <string name="err_permissions_storage_fail">Must grant permissions to storage!</string>
+    <string name="err_permissions_bluetooth_fail">Must grant permissions to bluetooth!</string>
+
+    <!-- Connect menu -->
+    <string name="button_connect">Connect</string>
+    <string name="button_reconnect">Reconnect</string>
+
+    <!-- Connect -->
+    <string name="button_scan_start">Scan</string>
+    <string name="button_scan_stop">Stop</string>
+</resources>
