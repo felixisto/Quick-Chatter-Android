@@ -27,24 +27,26 @@ import com.office.quickchatter.presenter.worker.SendFilePerformer;
 import com.office.quickchatter.presenter.worker.SendFilePerformerDelegate;
 
 public class ChatPresenter implements BasePresenter.Chat, LooperClient, TransmitterListener, SendFilePerformerDelegate {
-    private @NonNull Context _context;
+    private @NonNull final Context _context;
     private @Nullable BasePresenterDelegate.Chat _delegate;
-    private @NonNull BEClient _client;
-    private @NonNull BETransmitter.ReaderWriter _transmitter;
-    private @NonNull BETransmitter.Service _transmitterService;
+    private @NonNull final BEClient _client;
+    private @NonNull final BETransmitter.ReaderWriter _transmitter;
+    private @NonNull final BETransmitter.Service _transmitterService;
 
-    private @NonNull UIChat _chat;
+    private @NonNull final UIChat _chat;
 
-    private @NonNull Timer _updateTimer = new Timer(TimeValue.buildSeconds(0.5));
+    private @NonNull final Timer _updateTimer = new Timer(TimeValue.buildSeconds(0.5));
 
-    private final @NonNull SendFilePerformer _sendFilePerformer;
+    private @NonNull final SendFilePerformer _sendFilePerformer;
 
     private boolean _timeoutWarningSent = false;
     private boolean _timeoutSent = false;
 
-    public ChatPresenter(@NonNull BEClient client,
+    public ChatPresenter(@NonNull Context context,
+                         @NonNull BEClient client,
                          @NonNull BETransmitter.ReaderWriter transmitter,
                          @NonNull BETransmitter.Service transmitterService) {
+        _context = context;
         _client = client;
         _transmitter = transmitter;
         _transmitterService = transmitterService;
@@ -88,16 +90,23 @@ public class ChatPresenter implements BasePresenter.Chat, LooperClient, Transmit
 
     @Override
     public void stop() {
-        _delegate = null;
+        final ChatPresenter self = this;
 
-        LooperService.getShared().unsubscribe(this);
+        LooperService.getShared().performOnMain(new SimpleCallback() {
+            @Override
+            public void perform() {
+                _delegate = null;
 
-        _transmitterService.unsubscribe(this);
+                LooperService.getShared().unsubscribe(self);
 
-        _sendFilePerformer.stop();
+                _transmitterService.unsubscribe(self);
 
-        _transmitter.stop();
-        _transmitterService.stop();
+                _sendFilePerformer.stop();
+
+                _transmitter.stop();
+                _transmitterService.stop();
+            }
+        });
     }
 
     @Override
@@ -346,29 +355,20 @@ public class ChatPresenter implements BasePresenter.Chat, LooperClient, Transmit
     private void updatePingState() {
         TimeValue pingDelay = _transmitterService.getPingStatusChecker().timeElapsedSinceLastPing();
 
-        if (pingDelay.inMS() > BDConstants.getShared().CONNECTION_TIMEOUT_WARNING.inMS()) {
-            if (pingDelay.inMS() > BDConstants.getShared().CONNECTION_TIMEOUT.inMS()) {
-                if (!_timeoutSent) {
-                    _timeoutSent = true;
-
-                    if (_delegate != null) {
-                        _delegate.onConnectionTimeout(false);
-                    }
-                }
+        if (pingDelay.inMS() > BDConstants.CONNECTION_TIMEOUT_WARNING.inMS()) {
+            if (pingDelay.inMS() > BDConstants.CONNECTION_TIMEOUT.inMS()) {
+                handleConnectionTimeout();
             } else {
-                if (!_timeoutWarningSent) {
-                    _timeoutWarningSent = true;
-
-                    if (_delegate != null) {
-                        _delegate.onConnectionTimeout(true);
-                    }
-                }
+                handleConnectionTimeoutWarning();
             }
         } else {
             if (_timeoutWarningSent || _timeoutSent) {
-                if (_delegate != null) {
-                    _delegate.onConnectionRestored();
-                }
+                performOnDelegate(new Callback<BasePresenterDelegate.Chat>() {
+                    @Override
+                    public void perform(BasePresenterDelegate.Chat delegate) {
+                        delegate.onConnectionRestored();
+                    }
+                });
             }
 
             _timeoutWarningSent = false;
@@ -376,13 +376,54 @@ public class ChatPresenter implements BasePresenter.Chat, LooperClient, Transmit
         }
     }
 
-    private void updateDelegateChat(final @NonNull String message) {
+    private void handleConnectionTimeout() {
+        if (!_timeoutSent) {
+            Logger.warning(this, "Connection timeout detected!");
+
+            _timeoutSent = true;
+
+            performOnDelegate(new Callback<BasePresenterDelegate.Chat>() {
+                @Override
+                public void perform(BasePresenterDelegate.Chat delegate) {
+                    delegate.onConnectionTimeout(false);
+                }
+            });
+        }
+    }
+
+    private void handleConnectionTimeoutWarning() {
+        if (!_timeoutWarningSent) {
+            Logger.warning(this, "Connection timeout - warning.");
+
+            _timeoutWarningSent = true;
+
+            performOnDelegate(new Callback<BasePresenterDelegate.Chat>() {
+                @Override
+                public void perform(BasePresenterDelegate.Chat delegate) {
+                    delegate.onConnectionTimeout(true);
+                }
+            });
+        }
+    }
+
+    private void performOnDelegate(@NonNull final Callback<BasePresenterDelegate.Chat> callback) {
         LooperService.getShared().performOnMain(new SimpleCallback() {
             @Override
             public void perform() {
-                if (_delegate != null) {
-                    _delegate.updateChat(message, _chat.getLog());
+                if (_delegate == null) {
+                    return;
                 }
+
+                callback.perform(_delegate);
+            }
+        });
+    }
+
+    private void updateDelegateChat(@NonNull final String message) {
+        performOnDelegate(new Callback<BasePresenterDelegate.Chat>() {
+            @Override
+            public void perform(BasePresenterDelegate.Chat delegate) {
+                delegate.updateChat(message, _chat.getLog());
             }
         });
     }

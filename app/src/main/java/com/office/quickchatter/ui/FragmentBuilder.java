@@ -82,7 +82,7 @@ public class FragmentBuilder {
     public @NonNull Fragment buildChatScreen(@NonNull BEClient client,
                                              @NonNull BETransmitter.ReaderWriter transmitter,
                                              @NonNull BETransmitter.Service transmitterService) {
-        BasePresenter.Chat presenter = new ChatPresenter(client, transmitter, transmitterService);
+        BasePresenter.Chat presenter = new ChatPresenter(_context, client, transmitter, transmitterService);
 
         return FragmentChat.build(_router, _sysRouter, presenter);
     }
