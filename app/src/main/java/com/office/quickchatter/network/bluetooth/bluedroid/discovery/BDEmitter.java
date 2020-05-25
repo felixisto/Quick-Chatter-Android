@@ -57,7 +57,11 @@ public class BDEmitter extends BroadcastReceiver implements BEEmitter {
     }
 
     @Override
-    public synchronized void start() throws Exception {
+    public void start() throws Exception {
+        if (!_adapter.isAvailable()) {
+            Errors.throwUnsupportedOperation("Bluetooth unavailable");
+        }
+
         if (_active.getAndSet(true)) {
             return;
         }
@@ -73,7 +77,7 @@ public class BDEmitter extends BroadcastReceiver implements BEEmitter {
 
     @Override
     public void stop() throws Exception {
-        Errors.throwUnsupportedOperation("Cannot stop");
+        // Errors.throwUnsupportedOperation("Cannot stop");
     }
 
     @Override
