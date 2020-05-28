@@ -34,6 +34,7 @@ public class BDTransmissionLine implements TransmissionLine.InputAndOutput {
         return this.read.getType();
     }
 
+    @Override
     public long getNumberOfBytesTransmitted() {
         return read.getNumberOfBytesTransmitted() + write.getNumberOfBytesTransmitted();
     }
