@@ -3,7 +3,6 @@ package com.office.quickchatter.network.bluetooth.bluedroid.connectors;
 import android.bluetooth.BluetoothSocket;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.office.quickchatter.network.bluetooth.basic.BEClient;
 import com.office.quickchatter.network.bluetooth.basic.BEClientDevice;
@@ -24,15 +23,13 @@ import com.office.quickchatter.utilities.TimeValue;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class BDClientConnector implements BEConnector.Client {
     private final @NonNull BEClient _server;
     private final @NonNull BDAdapter _adapter;
 
-    private final @NonNull AtomicBoolean _running = new AtomicBoolean();
+    private final @NonNull AtomicBoolean _running = new AtomicBoolean(false);
 
-    private final @NonNull AtomicReference<BluetoothSocket> _clientSocket = new AtomicReference<>();
     private final int _tryCountOriginal;
     private final @NonNull AtomicInteger _tryCount = new AtomicInteger();
     private final @NonNull TimeValue _retryDelay;
@@ -46,10 +43,6 @@ public class BDClientConnector implements BEConnector.Client {
     }
 
     // # Properties
-
-    private @Nullable BluetoothSocket getOpenedSocket() {
-        return _clientSocket.get();
-    }
 
     public boolean isTryExhausted() {
         return _tryCount.get() <= 0;
@@ -67,20 +60,12 @@ public class BDClientConnector implements BEConnector.Client {
     }
 
     @Override
-    public boolean isConnecting() {
-        return _running.get() && getOpenedSocket() == null;
-    }
-
-    @Override
-    public boolean isConnected() {
-        return _running.get() && getOpenedSocket() != null;
-    }
-
-    @Override
     public void connect(@NonNull Callback<BESocket> success, @NonNull Callback<Exception> failure) throws Exception, BEError {
         if (_running.getAndSet(true)) {
             Errors.throwCannotStartTwice("Already running");
         }
+
+        Logger.message(this, "Connect start");
 
         _tryCount.set(_tryCountOriginal);
 
@@ -88,8 +73,8 @@ public class BDClientConnector implements BEConnector.Client {
     }
 
     @Override
-    public void terminate() {
-
+    public void stop() {
+        // Connector cannot stop, does not support fresh restart
     }
 
     // # Internals
@@ -115,8 +100,6 @@ public class BDClientConnector implements BEConnector.Client {
                     if (socket == null) {
                         Errors.throwTimeoutError("Timeout");
                     }
-
-                    _clientSocket.set(socket);
 
                     socket.connect();
 

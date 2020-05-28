@@ -50,16 +50,6 @@ public class BDServerConnector implements BEConnector.Server {
     }
 
     @Override
-    public boolean isConnecting() {
-        return _running.get() && getOpenedServerSocket() == null;
-    }
-
-    @Override
-    public boolean isConnected() {
-        return _running.get() && getOpenedServerSocket() != null;
-    }
-
-    @Override
     public void start(final @NonNull Callback<BESocket> success, final @NonNull Callback<Exception> failure) throws Exception, BEError {
         if (_running.getAndSet(true)) {
             return;
@@ -72,34 +62,7 @@ public class BDServerConnector implements BEConnector.Server {
         SimpleCallback completion = new SimpleCallback() {
             @Override
             public void perform() {
-                Logger.message(self, "Opening server socket...");
-
-                BluetoothServerSocket serverSocket = getOpenedServerSocket();
-
-                try {
-                    if (serverSocket == null) {
-                        serverSocket = startServerSync();
-                        _serverSocket.set(serverSocket);
-                    }
-
-                    Logger.message(self, "Server searching for clients...");
-
-                    BluetoothSocket clientSocket = serverSocket.accept();
-
-                    if (clientSocket == null) {
-                        Errors.throwTimeoutError("Timeout");
-                    }
-
-                    Logger.message(self, "Successfully paired with client!");
-
-                    success.perform(new BDSocket(clientSocket));
-                } catch (Exception e) {
-                    cleanup(serverSocket);
-
-                    Logger.error(self, "Failed to open server socket, error: " + e);
-
-                    failure.perform(e);
-                }
+                startServer(success, failure);
             }
         };
 
@@ -108,24 +71,45 @@ public class BDServerConnector implements BEConnector.Server {
 
     @Override
     public void stop() {
-        BluetoothServerSocket serverSocket = _serverSocket.getAndSet(null);
-
-        cleanup(serverSocket);
+        // Connector cannot stop, does not support fresh restart
     }
 
     // # Internals
 
-    private void cleanup(@Nullable BluetoothServerSocket serverSocket) {
-        if (serverSocket != null) {
-            try {
-                serverSocket.close();
-            } catch (Exception e) {
+    private void startServer(final @NonNull Callback<BESocket> success, final @NonNull Callback<Exception> failure) {
+        Logger.message(this, "Opening server socket...");
 
+        BluetoothServerSocket serverSocket = getOpenedServerSocket();
+
+        try {
+            if (serverSocket == null) {
+                serverSocket = openServerSocket();
+                _serverSocket.set(serverSocket);
             }
+
+            Logger.message(this, "Server searching for clients...");
+
+            BluetoothSocket clientSocket = serverSocket.accept();
+
+            if (clientSocket == null) {
+                Errors.throwTimeoutError("Timeout");
+            }
+
+            Logger.message(this, "Successfully paired with client!");
+
+            resetServerSocket(false);
+
+            success.perform(new BDSocket(clientSocket));
+        } catch (Exception e) {
+            resetServerSocket(true);
+
+            Logger.error(this, "Failed to open server socket, error: " + e);
+
+            failure.perform(e);
         }
     }
 
-    private @NonNull BluetoothServerSocket startServerSync() throws Exception {
+    private @NonNull BluetoothServerSocket openServerSocket() throws Exception {
         if (!_adapter.isAvailable()) {
             Errors.throwUnsupportedOperation("Bluetooth adapter is not available");
         }
@@ -137,5 +121,17 @@ public class BDServerConnector implements BEConnector.Server {
         }
 
         return socket;
+    }
+
+    private void resetServerSocket(boolean close) {
+        try {
+            if (close) {
+                _serverSocket.get().close();
+            }
+
+            _serverSocket.set(null);
+        } catch (Exception e) {
+
+        }
     }
 }
