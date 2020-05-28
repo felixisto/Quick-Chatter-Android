@@ -70,8 +70,14 @@ public class BDServerConnector implements BEConnector.Server {
     }
 
     @Override
-    public void stop() {
-        // Connector cannot stop, does not support fresh restart
+    public synchronized void stop() {
+        if (!_running.get()) {
+            return;
+        }
+
+        resetServerSocket(true);
+
+        // Does not support fresh restart
     }
 
     // # Internals
