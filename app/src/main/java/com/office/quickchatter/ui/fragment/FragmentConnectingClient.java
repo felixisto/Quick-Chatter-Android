@@ -1,5 +1,7 @@
 package com.office.quickchatter.ui.fragment;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -77,7 +79,32 @@ public class FragmentConnectingClient extends Fragment implements BasePresenterD
     public void navigateToChatScreen(@NonNull BEClient client,
                                      @NonNull BETransmitter.ReaderWriter transmitter,
                                      @NonNull BETransmitter.Service transmitterService) {
-        _router.navigateToChatScreen(client, transmitter, transmitterService);
+        try {
+            _router.navigateToChatScreen(client, transmitter, transmitterService);
+        } catch (Exception e) {
+            Logger.error(this, "Internal error while navigating to chat: " + e);
+
+            _router.navigateBack();
+
+            showError("Error", "Internal error");
+        }
+    }
+
+    public void showError(@NonNull String title, @NonNull String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle(title);
+        builder.setMessage(message);
+        builder.setCancelable(true);
+
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 }
 

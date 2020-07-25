@@ -93,8 +93,13 @@ public class FragmentReconnect extends Fragment implements BasePresenterDelegate
                 "Server",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        _router.navigateToConnectingAsServer(client);
                         dialog.cancel();
+
+                        try {
+                            _router.navigateToConnectingAsServer(client);
+                        } catch (Exception e) {
+                            showError("Error", "Internal error");
+                        }
                     }
                 });
 
@@ -102,12 +107,34 @@ public class FragmentReconnect extends Fragment implements BasePresenterDelegate
                 "Client",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        _router.navigateToConnectingAsClient(client);
                         dialog.cancel();
+
+                        try {
+                            _router.navigateToConnectingAsClient(client);
+                        } catch (Exception e) {
+                            showError("Error", "Internal error");
+                        }
                     }
                 });
 
         AlertDialog alert11 = builder1.create();
         alert11.show();
+    }
+
+    public void showError(@NonNull String title, @NonNull String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle(title);
+        builder.setMessage(message);
+        builder.setCancelable(true);
+
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 }

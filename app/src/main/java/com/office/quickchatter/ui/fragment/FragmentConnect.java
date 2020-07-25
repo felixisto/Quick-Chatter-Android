@@ -125,8 +125,13 @@ public class FragmentConnect extends Fragment implements BasePresenterDelegate.C
                 "Server",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        _router.navigateToConnectingAsServer(client);
                         dialog.cancel();
+
+                        try {
+                            _router.navigateToConnectingAsServer(client);
+                        } catch (Exception e) {
+                            handleNavigationError(e);
+                        }
                     }
                 });
 
@@ -134,8 +139,13 @@ public class FragmentConnect extends Fragment implements BasePresenterDelegate.C
                 "Client",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        _router.navigateToConnectingAsClient(client);
                         dialog.cancel();
+
+                        try {
+                            _router.navigateToConnectingAsClient(client);
+                        } catch (Exception e) {
+                            handleNavigationError(e);
+                        }
                     }
                 });
 
@@ -155,6 +165,25 @@ public class FragmentConnect extends Fragment implements BasePresenterDelegate.C
         }
     }
 
+    public void showError(@NonNull String title, @NonNull String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle(title);
+        builder.setMessage(message);
+        builder.setCancelable(true);
+
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    // # Internals
+
     private boolean buttonScanIsScanning() {
         return _buttonScan.isChecked();
     }
@@ -163,5 +192,9 @@ public class FragmentConnect extends Fragment implements BasePresenterDelegate.C
         if (buttonScanIsScanning() != scanning) {
             _buttonScan.performClick();
         }
+    }
+
+    private void handleNavigationError(@NonNull Exception e) {
+        showError("Error", "Internal error");
     }
 }

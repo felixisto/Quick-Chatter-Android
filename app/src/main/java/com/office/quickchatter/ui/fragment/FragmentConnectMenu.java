@@ -1,5 +1,7 @@
 package com.office.quickchatter.ui.fragment;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -59,15 +61,40 @@ public class FragmentConnectMenu extends Fragment {
         super.onDestroy();
     }
 
+    public void showError(@NonNull String title, @NonNull String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle(title);
+        builder.setMessage(message);
+        builder.setCancelable(true);
+
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
     private void onConnectClick() {
         Logger.message(this, "onConnectClick()");
 
-        _router.navigateToConnectScreen();
+        try {
+            _router.navigateToConnectScreen();
+        } catch (Exception e) {
+            showError("Error", "Internal error");
+        }
     }
 
     private void onReconnectClick() {
         Logger.message(this, "onReconnectClick()");
 
-        _router.navigateToReconnectScreen();
+        try {
+            _router.navigateToReconnectScreen();
+        } catch (Exception e) {
+            showError("Error", "Internal error");
+        }
     }
 }

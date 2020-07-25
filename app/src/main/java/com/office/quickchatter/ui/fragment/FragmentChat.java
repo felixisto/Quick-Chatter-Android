@@ -97,17 +97,7 @@ public class FragmentChat extends Fragment implements BasePresenterDelegate.Chat
                     return;
                 }
 
-                _systemRouter.pickFile(new Callback<Path>() {
-                    @Override
-                    public void perform(Path path) {
-                        _presenter.sendFile(path);
-                    }
-                }, new SimpleCallback() {
-                    @Override
-                    public void perform() {
-
-                    }
-                }, "Pick file to send");
+                pickFileToSend();
             }
         });
 
@@ -143,7 +133,7 @@ public class FragmentChat extends Fragment implements BasePresenterDelegate.Chat
     public void onAskToAcceptTransferFile(final @NonNull Callback<Path> accept,
                                           final @NonNull SimpleCallback deny,
                                           final @NonNull String name,
-                                          @NonNull String description) {
+                                          final @NonNull String description) {
         // Alert
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Transfer");
@@ -160,17 +150,7 @@ public class FragmentChat extends Fragment implements BasePresenterDelegate.Chat
         builder.setPositiveButton("Accept", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                _systemRouter.pickFileDestination(new Callback<Path>() {
-                    @Override
-                    public void perform(Path path) {
-                        accept.perform(path);
-                    }
-                }, new SimpleCallback() {
-                    @Override
-                    public void perform() {
-                        deny.perform();
-                    }
-                }, name, "Pick destination");
+                pickFileDestination(accept, deny, name, description);
             }
         });
 
@@ -190,7 +170,11 @@ public class FragmentChat extends Fragment implements BasePresenterDelegate.Chat
         } else {
             _presenter.stop();
 
-            _router.navigateToConnectMenuScreen();
+            try {
+                _router.navigateToConnectMenuScreen();
+            } catch (Exception e) {
+                Logger.error(this, "Cannot navigate back, internal error: " + e);
+            }
 
             CommonToast.showConnectionLost(getContext());
         }
@@ -212,5 +196,50 @@ public class FragmentChat extends Fragment implements BasePresenterDelegate.Chat
 
         AlertDialog alert = builder.create();
         alert.show();
+    }
+
+    // # Internals
+
+    private void pickFileToSend() {
+        try {
+            _systemRouter.pickFile(new Callback<Path>() {
+                @Override
+                public void perform(Path path) {
+                    _presenter.sendFile(path);
+                }
+            }, new SimpleCallback() {
+                @Override
+                public void perform() {
+
+                }
+            }, "Pick file to send");
+        } catch (Exception e) {
+            handleNavigationError(e);
+        }
+    }
+
+    private void pickFileDestination(final @NonNull Callback<Path> accept,
+                                     final @NonNull SimpleCallback deny,
+                                     final @NonNull String name,
+                                     @NonNull String description) {
+        try {
+            _systemRouter.pickFileDestination(new Callback<Path>() {
+                @Override
+                public void perform(Path path) {
+                    accept.perform(path);
+                }
+            }, new SimpleCallback() {
+                @Override
+                public void perform() {
+                    deny.perform();
+                }
+            }, name, "Pick destination");
+        } catch (Exception e) {
+            handleNavigationError(e);
+        }
+    }
+
+    private void handleNavigationError(@NonNull Exception e) {
+        showError("Error", "Unknown error");
     }
 }

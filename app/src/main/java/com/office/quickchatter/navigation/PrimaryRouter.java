@@ -25,6 +25,7 @@ import com.office.quickchatter.filesystem.worker.loader.FileSystemLoaderLocal;
 import com.office.quickchatter.ui.FragmentBuilder;
 import com.office.quickchatter.ui.fragment.FragmentFilePicker;
 import com.office.quickchatter.utilities.Callback;
+import com.office.quickchatter.utilities.Errors;
 import com.office.quickchatter.utilities.Logger;
 import com.office.quickchatter.utilities.LooperService;
 import com.office.quickchatter.utilities.SimpleCallback;
@@ -116,10 +117,11 @@ public class PrimaryRouter implements Router.Primary, Router.System {
     }
 
     @Override
-    public void navigateToConnectMenuScreen() {
+    public void navigateToConnectMenuScreen() throws Exception {
         if (getState() == State.connectMenu) {
-            Logger.warning(this, "Already at connect menu screen, no need for navigation.");
-            return;
+            String message = "Already at connect menu screen, no need for navigation.";
+            Logger.warning(this, message);
+            Errors.throwIllegalStateError(message);
         }
 
         closeAllPopupWindows();
@@ -128,15 +130,17 @@ public class PrimaryRouter implements Router.Primary, Router.System {
     }
 
     @Override
-    public void navigateToConnectScreen() {
+    public void navigateToConnectScreen() throws Exception {
         if (getState() == State.connect) {
-            Logger.warning(this, "Already at connect screen, no need for navigation.");
-            return;
+            String message = "Already at connect screen, no need for navigation.";
+            Logger.warning(this, message);
+            Errors.throwIllegalStateError(message);
         }
 
         if (getState() != State.connectMenu && getState() != State.chat) {
-            Logger.error(this, "Can navigate to connect screen only from either chat OR connect menu screens!");
-            return;
+            String message = "Can navigate to connect screen only from either chat OR connect menu screens!";
+            Logger.error(this, message);
+            Errors.throwIllegalStateError(message);
         }
 
         closeAllPopupWindows();
@@ -145,15 +149,17 @@ public class PrimaryRouter implements Router.Primary, Router.System {
     }
 
     @Override
-    public void navigateToReconnectScreen() {
+    public void navigateToReconnectScreen() throws Exception {
         if (getState() == State.reconnect) {
-            Logger.warning(this, "Already at connect screen, no need for navigation.");
-            return;
+            String message = "Already at connect screen, no need for navigation.";
+            Logger.warning(this, message);
+            Errors.throwIllegalStateError(message);
         }
 
         if (getState() != State.connectMenu) {
-            Logger.error(this, "Can navigate to reconnect screen only from connect menu screen!");
-            return;
+            String message = "Can navigate to reconnect screen only from connect menu screen!";
+            Logger.error(this, message);
+            Errors.throwIllegalStateError(message);
         }
 
         closeAllPopupWindows();
@@ -162,28 +168,30 @@ public class PrimaryRouter implements Router.Primary, Router.System {
     }
 
     @Override
-    public void navigateToConnectingAsServer(@NonNull BEClient client) {
+    public void navigateToConnectingAsServer(@NonNull BEClient client) throws Exception {
         closeAllPopupWindows();
 
         navigateToConnecting(client, true);
     }
 
     @Override
-    public void navigateToConnectingAsClient(@NonNull BEClient client) {
+    public void navigateToConnectingAsClient(@NonNull BEClient client) throws Exception {
         closeAllPopupWindows();
 
         navigateToConnecting(client, false);
     }
 
-    void navigateToConnecting(@NonNull BEClient client, boolean isServer) {
+    void navigateToConnecting(@NonNull BEClient client, boolean isServer) throws Exception {
         if (getState() == State.connecting) {
-            Logger.warning(this, "Already at connecting screen, no need for navigation.");
-            return;
+            String message = "Already at connecting screen, no need for navigation.";
+            Logger.warning(this, message);
+            Errors.throwIllegalStateError(message);
         }
 
         if (getState() != State.connect && getState() != State.reconnect) {
-            Logger.error(this, "Can navigate to connecting screen from either reconnect OR connect screen!");
-            return;
+            String message = "Can navigate to connecting screen from either reconnect OR connect screen!";
+            Logger.error(this, message);
+            Errors.throwIllegalStateError(message);
         }
 
         closeAllPopupWindows();
@@ -198,15 +206,17 @@ public class PrimaryRouter implements Router.Primary, Router.System {
     @Override
     public void navigateToChatScreen(@NonNull BEClient client,
                                      @NonNull BETransmitter.ReaderWriter transmitter,
-                                     @NonNull BETransmitter.Service transmitterService) {
+                                     @NonNull BETransmitter.Service transmitterService) throws Exception {
         if (getState() == State.chat) {
-            Logger.warning(this, "Already at chat screen, no need for navigation.");
-            return;
+            String message = "Already at chat screen, no need for navigation.";
+            Logger.warning(this, message);
+            Errors.throwIllegalStateError(message);
         }
 
         if (getState() != State.connecting) {
-            Logger.error(this, "Can navigate to chat screen only from connecting screen!");
-            return;
+            String message = "Can navigate to chat screen only from connecting screen!";
+            Logger.error(this, message);
+            Errors.throwIllegalStateError(message);
         }
 
         closeAllPopupWindows();
@@ -224,20 +234,22 @@ public class PrimaryRouter implements Router.Primary, Router.System {
     }
 
     @Override
-    public void pickFile(@NonNull Callback<Path> success, @NonNull SimpleCallback failure, @NonNull String description) {
+    public void pickFile(@NonNull Callback<Path> success, @NonNull SimpleCallback failure, @NonNull String description) throws Exception {
         if (isFilePickerScreenVisible()) {
-            Logger.error(this, "Cannot open pick file screen again, its already open");
-            return;
+            String message = "Cannot open pick file screen again, its already open";
+            Logger.error(this, message);
+            Errors.throwIllegalStateError(message);
         }
 
         openPickFileScreen(false, success, failure, description);
     }
 
     @Override
-    public void pickDirectory(@NonNull Callback<Path> success, @NonNull SimpleCallback failure, @NonNull String description) {
+    public void pickDirectory(@NonNull Callback<Path> success, @NonNull SimpleCallback failure, @NonNull String description) throws Exception {
         if (isFilePickerScreenVisible()) {
-            Logger.error(this, "Cannot open pick file screen again, its already open");
-            return;
+            String message = "Cannot open pick file screen again, its already open";
+            Logger.error(this, message);
+            Errors.throwIllegalStateError(message);
         }
 
         openPickFileScreen(true, success, failure, description);
@@ -245,10 +257,11 @@ public class PrimaryRouter implements Router.Primary, Router.System {
 
 
     @Override
-    public void pickFileDestination(@NonNull Callback<Path> success, @NonNull SimpleCallback failure, @NonNull String name, @NonNull String description) {
+    public void pickFileDestination(@NonNull Callback<Path> success, @NonNull SimpleCallback failure, @NonNull String name, @NonNull String description) throws Exception {
         if (isFilePickerScreenVisible()) {
-            Logger.error(this, "Cannot open pick file screen again, its already open");
-            return;
+            String message = "Cannot open pick file screen again, its already open";
+            Logger.error(this, message);
+            Errors.throwIllegalStateError(message);
         }
 
         openPickFileDestinationScreen(success, failure, name, description);
