@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.RandomAccessFile;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
 
 public class SendFilePerformer implements TransmitterListener {
     public enum State {
@@ -36,6 +37,8 @@ public class SendFilePerformer implements TransmitterListener {
     public static final char STATUS_CANCEL = '0';
     public static final char STATUS_ACCEPT = '1';
     public static final char STATUS_DENY = '2';
+
+    public static final @NonNull String ASK_DESCRIPTION_NAME_SEPARATOR = "'";
 
     private @NonNull final Object lock = new Object();
 
@@ -300,10 +303,7 @@ public class SendFilePerformer implements TransmitterListener {
     }
 
     private @NonNull BDTransmissionMessage buildSendAskMessage(@NonNull FilePath path) {
-        String name = path.getLastComponent();
-        DataSize size = getSize(path);
-
-        byte[] value = stringToBytes(name + " (" + size.toString() + ")");
+        byte[] value = stringToBytes(buildSendAskDescription(path));
 
         return new BDTransmissionMessage(constants.TYPE_SEND_FILE_ASK, value);
     }
@@ -517,7 +517,7 @@ public class SendFilePerformer implements TransmitterListener {
         return BDTransmissionMessageSegment.bytesToString(data);
     }
 
-    private @NonNull DataSize getSize(@NonNull FilePath path) {
+    private @NonNull DataSize getSizeFromPath(@NonNull FilePath path) {
         String filePath = path.getPath();
 
         if (filePath == null) {
@@ -541,13 +541,19 @@ public class SendFilePerformer implements TransmitterListener {
         return new byte[0];
     }
 
-    private @NonNull String getFileNameFromSentDescription(@NonNull String description) {
-        String[] components = description.split(" ");
+    private @NonNull String buildSendAskDescription(@NonNull FilePath path) {
+        String name = path.getLastComponent();
+        DataSize size = getSizeFromPath(path);
+        return ASK_DESCRIPTION_NAME_SEPARATOR + name + ASK_DESCRIPTION_NAME_SEPARATOR + " (" + size.toString() + ")";
+    }
 
-        if (components.length <= 1) {
+    private @NonNull String getFileNameFromSentDescription(@NonNull String description) {
+        String[] components = description.split(Pattern.quote(ASK_DESCRIPTION_NAME_SEPARATOR));
+
+        if (components.length <= 2) {
             return "transferredFile";
         }
 
-        return components[0];
+        return components[1];
     }
 }
